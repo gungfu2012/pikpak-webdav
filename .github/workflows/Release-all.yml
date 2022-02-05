@@ -79,7 +79,7 @@ jobs:
       environment:
         name: PyPI
         url: https://pypi.org/project/pikpak-pikpak-webdav/
-      needs: [ linux, macos ]
+      needs: [ linux ]
       steps:
         - uses: actions/download-artifact@v2
           with:
