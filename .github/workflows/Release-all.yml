@@ -47,11 +47,7 @@ jobs:
           name: wheels
           path: dist
           if-no-files-found: error
-      - name: Upx compress binary
-        uses: crazy-max/ghaction-upx@v1
-        with:
-          version: latest
-          files: target/${{ matrix.platform.target }}/release/pikpak-webdav
+ 
       - name: Upload binary artifacts
         uses: actions/upload-artifact@v2
         with:
