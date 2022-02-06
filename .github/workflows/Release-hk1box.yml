@@ -1,21 +1,19 @@
-name: Test
-
+name: Release For Hk1BOX
 on:
   repository_dispatch:
   workflow_dispatch:
     inputs:
-      ssh:
-        description: 'SSH connection to Actions'
-        required: false
-        default: 'false'
-
+      tag:
+        description: 'Tag to release'
+        required: true
+        default: 'v0.0.1'
 jobs:
   linux:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         platform: [
-          { target: "x86_64-unknown-linux-musl", image_tag: "x86_64-musl", wheel: true },
+          { target: "aarch64-unknown-linux-musl", image_tag: "aarch64-musl", wheel: true },
         ]
     container:
       image: docker://messense/rust-musl-cross:${{ matrix.platform.image_tag }}
@@ -23,10 +21,6 @@ jobs:
         CFLAGS_armv7_unknown_linux_musleabihf: '-mfpu=vfpv3-d16'
     steps:
       - uses: actions/checkout@v2
-      - name: Get Download Url
-        id: getref
-        run: |
-          echo "${{ github.ref }}"
       - name: Build wheels - manylinux
         uses: messense/maturin-action@main
         with:
@@ -49,29 +43,24 @@ jobs:
           name: wheels
           path: dist
           if-no-files-found: error
-      - name: Upx compress binary
-        uses: crazy-max/ghaction-upx@v1
-        with:
-          version: latest
-          files: target/${{ matrix.platform.target }}/release/webdav
+ 
       - name: Upload binary artifacts
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.platform.target }}-bin
-          path: target/${{ matrix.platform.target }}/release/webdav
+          path: target/${{ matrix.platform.target }}/release/pikpak-webdav
           if-no-files-found: error
       - name: Archive binary
         run: |
           cd target/${{ matrix.platform.target }}/release
-          tar czvf webdav-v0.0.1.${{ matrix.platform.target }}.tar.gz webdav
-          shasum -a 256 webdav-v0.0.1.${{ matrix.platform.target }}.tar.gz > webdav-v0.0.1.${{ matrix.platform.target }}.tar.gz.sha256
+          tar czvf pikpak-webdav-${{ github.event.inputs.tag }}.${{ matrix.platform.target }}.tar.gz pikpak-webdav
+          shasum -a 256 pikpak-webdav-${{ github.event.inputs.tag }}.${{ matrix.platform.target }}.tar.gz > pikpak-webdav-${{ github.event.inputs.tag }}.${{ matrix.platform.target }}.tar.gz.sha256
           cd -
       - name: Upload binary to GitHub Release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/${{ matrix.platform.target }}/release/webdav*.tar.gz*
+          file: target/${{ matrix.platform.target }}/release/pikpak-webdav*.tar.gz*
           file_glob: true
           overwrite: true
-          tag: 'refs/tags/v0.0.1'
-  
+          tag: "refs/tags/${{ github.event.inputs.tag }}"
