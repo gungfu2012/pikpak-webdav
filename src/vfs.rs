@@ -74,6 +74,7 @@ impl WebdavDriveFileSystem {
             .pool_idle_timeout(Duration::from_secs(50))
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(30))
+            .proxy(reqwest::Proxy::all("http://127.0.0.1:10809")?)
             .build()?;
         let auth_cache = AuthCache::new(2);
 
